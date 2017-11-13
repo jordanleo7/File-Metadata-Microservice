@@ -7,31 +7,19 @@
 
 var fs = require('fs');
 var express = require('express');
+var app = express();
 var path = require('path');
-var MongoClient = require('mongodb').MongoClient
 var mongoose = require('mongoose');
 var multer = require('multer');
-const storage = require('multer-gridfs-storage') ({
-  url: process.env.MONGOLAB_URI,
-  file: (req, file) => {
-    console.log(file);
-    return {
-      filename: 'file_' + Date.now() + path.extname(file.originalname)
-    };
-  }
-});
-const upload = multer({ storage: storage });
-const app = express();
+var storage = multer.diskStorage({ destination: function (req, file, cb) {
+  cb(null, './upload')
+  },
+   filename: function (req, file, cb) {
+     cb(null, Date.now() + path.extname(file.originalname) )
+   }
+   })
 
-mongoose.connect(process.env.MONGOLAB_URI, {
-  useMongoClient: true
-});
-// Get the default connection
-var db = mongoose.connection;
-// Bind connection to error event (to get notification of connection errors)
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-
-
+var upload = multer({storage: storage})
 var Schema = mongoose.Schema;
 // Create schema
 var MySchema = mongoose.Schema({
@@ -65,11 +53,6 @@ app.post('/upload', upload.single('userFile'), function (req, res, next) {
   res.send(fileDetails);
   
 })
-
-
-
-
-
 
 
 
